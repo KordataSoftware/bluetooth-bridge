@@ -1,0 +1,15 @@
+[Unit]
+Description=Kordata IOT-ifier
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/npm start
+WorkingDirectory=/share/kordata-iotifier
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

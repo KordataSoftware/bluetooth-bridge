@@ -1,0 +1,28 @@
+{
+  "name": "kordata-iotifier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "babel-node ./src/index.js",
+    "debug": "babel-node debug ./src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Kordata",
+  "license": "Proprietary",
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "@babel/core": "^7.4.5",
+    "@babel/node": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/register": "^7.4.4",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4"
+  },
+  "dependencies": {
+    "rpi-fix-bleno": "^0.5.2",
+    "serialport": "^7.1.5",
+    "usb": "^1.6.0"
+  }
+}
