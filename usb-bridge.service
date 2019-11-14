@@ -1,10 +1,10 @@
 [Unit]
-Description=Kordata IOT-ifier
-After=network.target
+Description=Kordata USB-Bluetooth Bridge
+After=bluetooth.target
 
 [Service]
 ExecStart=/usr/bin/npm start
-WorkingDirectory=/share/kordata-iotifier
+WorkingDirectory=/share/usb-bluetooth-bridge
 StandardOutput=inherit
 StandardError=inherit
 Restart=always

@@ -1,14 +1,13 @@
 import Driver from '../src/driver';
 import SerialPort from 'serialport';
 
-
 class MarSurfPS10 extends Driver {
   get name() {
     return 'MarSurf PS 10';
   }
 
-  parseBuffer(text) {
-    console.log(this.buffer);
+  parseBuffer() {
+    this.logger.info(this.buffer);
     var points = this.buffer.replace('\r', '').split(';');
 
     return {
@@ -18,6 +17,8 @@ class MarSurfPS10 extends Driver {
   }
 
   handleData(data) {
+    this.logger.debug('received data');
+
     if (this.status == 'disconnecting') return;
     if (!data || data.length == 0) return;
 
@@ -26,20 +27,25 @@ class MarSurfPS10 extends Driver {
     this.buffer += text;
     if (text.endsWith('\r')) {
       const result = this.parseBuffer();
+
       this.disconnect();
       this.callback(null, result);
     }
   }
 
   handleError(error) {
+    this.logger.error(error);
     this.callback(error, null);
   }
 
   takeMeasurement() {
     this.buffer = '';
+    this.logger.debug('taking measurement');
 
     this.port.set({rts: true, dtr: false}, err => {
       if (err) {
+        this.logger.error(err);
+
         this.callback(err, null);
       }
     });
@@ -55,6 +61,7 @@ class MarSurfPS10 extends Driver {
   getData(callback) {
     this.status = 'connecting;';
     this.callback = callback;
+    this.logger.debug('connecting');
 
     this.port = new SerialPort('/dev/ttyUSB0', { baudRate: 4800, dataBits: 7, parity: 'even', stopBits: 2});
 
@@ -66,7 +73,8 @@ class MarSurfPS10 extends Driver {
     });
 
     this.port.on('open', x => {
-      this.status = 'connected';
+      this.logger.trace('port open');
+
       this.takeMeasurement();
     });
   }

@@ -9,7 +9,7 @@ class RhopointIq extends Driver {
   }
 
   parseBuffer(text) {
-    console.log(this.buffer);
+    this.logger.info(this.buffer);
 
     return this.buffer
       .split('\r\n')
@@ -22,12 +22,12 @@ class RhopointIq extends Driver {
   }
 
   handleData(data) {
+    this.logger.debug('received data');
+
     if (this.status == 'disconnecting') return;
     if (!data || data.length == 0) return;
 
     const text = data.toString('utf8');
-    //console.log(data.toString('hex'));
-    //console.log(text);
 
     this.buffer += text;
     if (text.endsWith('\r\n>')) {
@@ -37,19 +37,27 @@ class RhopointIq extends Driver {
     }
 
     if (text.includes('Error')) {
+      this.logger.error(this.buffer);
+
       this.disconnect();
       this.callback(this.buffer, null);
     }
   }
 
   handleError(error) {
+    this.logger.error(error);
+
     this.callback(error, null);
   }
 
   takeMeasurement() {
     this.buffer = '';
+    this.logger.debug('taking measurement');
+
     this.outEndpoint.transfer(Buffer.from(takeMeasurementCommand), err => {
       if (err) {
+        this.logger.error(err);
+
         this.callback(err, null);
       }
     });
@@ -65,24 +73,23 @@ class RhopointIq extends Driver {
   getData(callback) {
     this.status = 'connecting;';
     this.callback = callback;
-    const devices = usb.getDeviceList();
-    //console.log(devices);
+    this.logger.debug('connecting');
+
+    //const devices = usb.getDeviceList();
 
     this.term = usb.findByIds(6588, 52741);
     if (!this.term) {
+      this.logger.warn('device not found');
+
       callback('Device not found', null);
     }
+
     this.term.open();
-
-    // console.log('Interfaces: ' + term.interfaces.length);
-
-    // for (var i = 0; i < term.interfaces.length; i++) {
-    //     for (var j = 0; j < term.interfaces[i].endpoints.length; j++) {
-    //         console.log('Interface ' + i + ' Endpoint ' + j + ' ' + term.interfaces[i].endpoints[j].direction);
-    //     }
-    // }
+    this.logger.debug('opened connection');
 
     this.term.interfaces[1].claim();
+    this.logger.debug('claimed interface');
+
     const endpoints = this.term.interfaces[1].endpoints;
 
     this.inEndpoint = endpoints[0];

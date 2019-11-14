@@ -1,4 +1,5 @@
 import { Characteristic, Descriptor } from 'rpi-fix-bleno';
+import { getLogger } from 'log4js';
 
 export default class JsonDataCharacteristic extends Characteristic {
   constructor(usbManager) {
@@ -15,10 +16,14 @@ export default class JsonDataCharacteristic extends Characteristic {
     });
 
     this.usbManager = usbManager;
-    console.log('built json characteristic');
+    this.logger = getLogger("JsonDataCharacteristic");
+
+    this.logger.debug('Built successfully');
   }
 
   async onReadRequest(offset, callback) {
+    this.logger.info('Received read request');
+
     if (offset > 0) {
       if (!this.buffer || offset > this.buffer.length) {
         callback(this.RESULT_INVALID_OFFSET, null);
@@ -34,6 +39,8 @@ export default class JsonDataCharacteristic extends Characteristic {
       this.result = this.RESULT_SUCCESS;
       this.buffer = Buffer.from(JSON.stringify(data));
     } catch (e) {
+      this.logger.warn('Failed to get data from UsbManager: ' + e);
+
       const data = {
         error: e,
       };

@@ -1,0 +1,20 @@
+#!/bin/bash
+OLD_HOSTNAME=$(cat /etc/hostname)
+HOSTNAME_BASE=$(cat /boot/hostname_base)
+
+##### DONT EDIT PAST HERE #####
+
+# This generates an ID using the following method
+# 1. Find the ethernet entry in ifconfig
+# 2. Pull out the mac address
+# 3. Strip ':' from the mac address
+# 4. Convert to base32
+# 5. Strip = from base32 and trim first four chars to make the ID. RPI has two possible MAC OUIs, so we keep the last char of the
+# OUI portion as part of our identifier
+ID=$(ifconfig eth0 | grep ether | egrep -o '([[:xdigit:]]{2}[:.-]?){5}[[:xdigit:]]{2}' | sed 's/://g' | xxd -r -p | base32 | sed 's/=//g' | cut -c 5-)
+
+NEW_HOSTNAME=$HOSTNAME_BASE$ID
+echo $NEW_HOSTNAME > /etc/hostname
+
+sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+echo $NEW_HOSTNAME > /boot/hostname
