@@ -2,6 +2,7 @@ import Driver from '../src/driver';
 import usb from 'usb';
 
 const takeMeasurementCommand = 'R\r\n';
+const knownDeviceIds = [52741, 52745];
 
 class RhopointIq extends Driver {
   get name() {
@@ -66,7 +67,9 @@ class RhopointIq extends Driver {
   disconnect() {
     this.status = 'disconnecting';
     this.inEndpoint.stopPoll(() => {
-      this.term.close();
+      this.deviceInterface.release(() => {
+        this.term.close();
+      });
     });
   }
 
@@ -75,9 +78,15 @@ class RhopointIq extends Driver {
     this.callback = callback;
     this.logger.debug('connecting');
 
-    //const devices = usb.getDeviceList();
+    // Try to find the device based on all the known IDs
+    // it could have
+    for (const devId of knownDeviceIds)
+    {
+      this.term = usb.findByIds(6588, devId);
+      if (this.term != null) break;
+    }
 
-    this.term = usb.findByIds(6588, 52741);
+    // If we couldn't find it, error out
     if (!this.term) {
       this.logger.warn('device not found');
 
@@ -87,7 +96,13 @@ class RhopointIq extends Driver {
     this.term.open();
     this.logger.debug('opened connection');
 
-    this.term.interfaces[1].claim();
+    this.deviceInterface = this.term.interfaces[1];
+
+    if (this.deviceInterface.isKernelDriverActive()) {
+      this.deviceInterface.detachKernelDriver();
+    }
+
+    this.deviceInterface.claim();
     this.logger.debug('claimed interface');
 
     const endpoints = this.term.interfaces[1].endpoints;
