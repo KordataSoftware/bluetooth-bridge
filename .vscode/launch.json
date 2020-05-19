@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "type": "node",
+        "request": "launch",
+        "name": "babel-nodemon",
+        "program": "${workspaceRoot}/src/index.js",
+        "restart": true, // <= important!
+        "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/nodemon", // <= local path if nodemon not installed globally
+        "args": ["--exec", "${workspaceRoot}/node_modules/.bin/babel-node" ],
+        "sourceMaps": true,
+        "env": {
+          "BABEL_ENV": "debug"
+        },
+        "console": "integratedTerminal"
+      }
+    ]
+  }

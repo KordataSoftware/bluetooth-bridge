@@ -1,6 +1,8 @@
 import Driver from '../src/driver';
 import usb from 'usb';
+import moment from 'moment';
 
+const setShortDataCommand = 'S\r\n';
 const takeMeasurementCommand = 'R\r\n';
 const knownDeviceIds = [52741, 52745];
 
@@ -9,21 +11,52 @@ class RhopointIq extends Driver {
     return 'Rhopoint Iq';
   }
 
-  parseBuffer(text) {
+  parseBuffer() {
     this.logger.info(this.buffer);
 
-    return this.buffer
+    if (this.buffer.startsWith("Standard data set selected"))
+    {
+      this.buffer = '';
+      this.takeMeasurement();
+      return;
+    }
+
+    var pairs = this.buffer
       .split('\r\n')
       .map(line => line.split('='))
-      .filter(tokens => tokens[1])
+      .filter(tokens => tokens[1]);
+
+    // Now that we've processed the buffer, consume it.
+    this.buffer = '';
+
+    if (pairs.length == 0) {
+      // Don't do anything with empty data because it can
+      // be garbage from connecting / disconnecting, etc.
+      return;
+    }
+
+    if (!this.requestedMeasurementAt ||
+        moment().diff(this.requestedMeasurementAt) < 500) {
+      // We got data back, but we either haven't actually asked for a measurement,
+      // or not enough time has passed to have realistically taken a measurement
+      // so this is probably garbage data from a previous process death.
+      this.setShortData();
+      return;
+    }
+
+    var result = pairs
       .reduce((acc, current) => {
         acc[current[0]] = current[1];
         return acc;
       }, {});
+
+    this.requestedMeasurementAt = null;
+    this.disconnect();
+    this.callback(null, result);
   }
 
   handleData(data) {
-    this.logger.debug('received data');
+    this.logger.trace('received data');
 
     if (this.status == 'disconnecting') return;
     if (!data || data.length == 0) return;
@@ -31,10 +64,8 @@ class RhopointIq extends Driver {
     const text = data.toString('utf8');
 
     this.buffer += text;
-    if (text.endsWith('\r\n>')) {
-      const result = this.parseBuffer();
-      this.disconnect();
-      this.callback(null, result);
+    if (text.endsWith('>')) {
+      this.parseBuffer();
     }
 
     if (text.includes('Error')) {
@@ -51,10 +82,25 @@ class RhopointIq extends Driver {
     this.callback(error, null);
   }
 
-  takeMeasurement() {
+  setShortData() {
     this.buffer = '';
-    this.logger.debug('taking measurement');
+    this.logger.info('setting short data mode');
 
+    this.outEndpoint.transfer(Buffer.from(setShortDataCommand), err => {
+      if (err) {
+        this.logger.error(err);
+
+        this.callback(err, null);
+      }
+    });
+  }
+
+  takeMeasurement() {
+    this.requestedMeasurementAt = moment();
+
+    this.buffer = '';
+    this.logger.info('taking measurement');
+    
     this.outEndpoint.transfer(Buffer.from(takeMeasurementCommand), err => {
       if (err) {
         this.logger.error(err);
@@ -121,7 +167,7 @@ class RhopointIq extends Driver {
     });
 
     this.status = 'connected';
-    this.takeMeasurement();
+    this.setShortData();
   }
 }
 

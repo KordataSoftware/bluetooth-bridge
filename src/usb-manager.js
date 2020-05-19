@@ -11,6 +11,13 @@ export default class UsbManager {
   }
 
   async getData() {
+    if (this.isGettingData) {
+      this.logger.warn('tried to enter getData while it was running');
+      return {};
+    }
+
+    this.isGettingData = true;
+
     this.logger.debug('get data');
 
     const driverObjects = Object.keys(drivers).map(k => drivers[k]);
@@ -26,6 +33,7 @@ export default class UsbManager {
       .filter(result => result)
       .reduce((combined, result) => Object.assign(combined, result), {});
 
+    this.isGettingData = false;
     return finalResult;
   }
 }
