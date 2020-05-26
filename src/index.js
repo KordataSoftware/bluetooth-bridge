@@ -6,12 +6,17 @@ import log4js from 'log4js';
 import os from 'os';
 import minimist from 'minimist';
 
+var logLevel = 'info';
+if (process.env.LOG_LEVEL) {
+  logLevel = process.env.LOG_LEVEL;
+}
+
 log4js.configure({
   appenders: {
     everything: { type: 'dateFile', filename: 'usb-bluetooth-bridge.log'}
   },
   categories: {
-    default: { appenders: [ 'everything' ], level: process.env.LOG_LEVEL ?? 'info' }
+    default: { appenders: [ 'everything' ], level: logLevel }
   }
 });
 
