@@ -43,7 +43,7 @@ function pull_any_changes_and_install {
     LOCAL_REV=$(git -C $INSTALL_DIR rev-parse @)
     REMOTE_REV=$(git -C $INSTALL_DIR rev-parse "origin/master")
 
-    if [ $LOCAL_REV = $REMOTE_REV] ; then
+    if [ $LOCAL_REV = $REMOTE_REV ] ; then
         echo "Software is already up to date."
     else
         # Update to latest software version
