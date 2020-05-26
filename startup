@@ -6,15 +6,7 @@ START_SCRIPT=/home/pi/start_bridge
 
 echo "Starting up Kordata usb-bluetooth-bridge"
 
-# If the install dir isn't a git repo, then we need to clone the source 
-if ! git -C $INSTALL_DIR rev-parse ; then
-    echo "Installation isn't a git repo. Cloning new copy."
-    mv $INSTALL_DIR /share/bridge.old
-    git clone $GIT_REPO
-fi
-
-# Update to latest software version
-if git -C $INSTALL_DIR pull origin master ; then
+function update_self_if_needed {
     # If there's a new version of this script, install it and execute that
     if ! cmp --silent $INSTALL_DIR/startup $START_SCRIPT ; then
         echo "Detected new version of startup script. Now installing and executing..."
@@ -23,15 +15,56 @@ if git -C $INSTALL_DIR pull origin master ; then
         $START_SCRIPT
         exit 0
     fi
+}
 
-    echo "Software updated. Installing node modules"
+function install_deps_and_stuff {
+    update_self_if_needed
     npm --prefix $INSTALL_DIR install $INSTALL_DIR
+}
+
+function init_git_repo {
+    echo "Installation isn't a git repo. Cloning new copy."
+    mv $INSTALL_DIR /share/bridge.old
+    if git clone $GIT_REPO $INSTALL_DIR ; then
+        install_deps_and_stuff
+    else
+        # Put stuff back where it was for now
+        mv /share/bridge.old $INSTALL_DIR
+        echo "Unable to clone repo, so running existing version."
+    fi
+}
+
+function pull_any_changes_and_install {
+    if ! git -C $INSTALL_DIR remote update ; then
+        echo "Could not update software. This is probably because the device does not have a connection."
+        return 0
+    fi
+
+    LOCAL_REV=$(git -C $INSTALL_DIR rev-parse @)
+    REMOTE_REV=$(git -C $INSTALL_DIR rev-parse "origin/master")
+
+    if [ $LOCAL_REV = $REMOTE_REV] ; then
+        echo "Software is already up to date."
+    else
+        # Update to latest software version
+        git -C $INSTALL_DIR pull origin master
+
+        echo "Software updated."
+        install_deps_and_stuff
+    fi
+}
+
+# Check if the installation is a git repo
+if git -C $INSTALL_DIR rev-parse ; then
+    pull_any_changes_and_install
 else
-    echo "No network connection - skipping software update."
+    init_git_repo
 fi
 
 # Clear out old logs
+echo "Clearing old log files"
 find $INSTALL_DIR -name 'usb-bluetooth-bridge.log*' -mtime +30 -type f -exec rm -fv {} \;
 
 # Start the service
+echo "Now listening"
 npm --prefix /share/usb-bluetooth-bridge start
