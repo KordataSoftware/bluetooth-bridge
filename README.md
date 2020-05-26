@@ -20,7 +20,7 @@ To install the bridge as a service on your pi, modifiy the usb-bridge.service fi
 CRON:
 ```
 sudo crontab -e
-@reboot sleep 5 && /usr/bin/npm start --prefix /share/usb-bluetooth-bridge
+@reboot sleep 5 && /home/pi/start_bridge
 ```
 
 SYSTEMD (NOT WORKING ON BUSTER):

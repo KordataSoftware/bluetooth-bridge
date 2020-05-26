@@ -1,0 +1,36 @@
+#!/bin/bash
+
+INSTALL_DIR=/share/usb-bluetooth-bridge
+GIT_REPO=https://github.com/KordataSoftware/bluetooth-bridge.git
+START_SCRIPT=/home/pi/start_bridge
+
+echo "Starting up Kordata usb-bluetooth-bridge"
+
+# If the install dir isn't a git repo, then we need to clone the source 
+if ! git -C $INSTALL_DIR rev-parse ; then
+    mv $INSTALL_DIR /share/bridge.old
+    git clone $GIT_REPO
+fi
+
+# Update to latest software version
+if git -C $INSTALL_DIR pull origin master ; then
+    # If there's a new version of this script, install it and execute that
+    if ! cmp --silent $INSTALL_DIR/startup $START_SCRIPT ; then
+        echo "Detected new version of startup script. Now installing and executing..."
+        cp --remove-destination $INSTALL_DIR/startup $START_SCRIPT
+
+        $START_SCRIPT
+        exit 0
+    fi
+
+    echo "Software updated. Installing node modules"
+    npm --prefix $INSTALL_DIR install $INSTALL_DIR
+else
+    echo "No network connection - skipping software update."
+fi
+
+# Clear out old logs
+find $INSTALL_DIR -name 'usb-bluetooth-bridge.log*' -mtime +30 -type f -exec rm -fv {} \;
+
+# Start the service
+npm --prefix /share/usb-bluetooth-bridge start
