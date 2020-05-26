@@ -12,7 +12,7 @@ function update_self_if_needed {
         echo "Detected new version of startup script. Now installing and executing..."
         cp --remove-destination $INSTALL_DIR/startup $START_SCRIPT
 
-        $START_SCRIPT
+        $START_SCRIPT -u
         exit 0
     fi
 }
@@ -35,6 +35,8 @@ function init_git_repo {
 }
 
 function pull_any_changes_and_install {
+    echo "Checking for updates..."
+
     if ! git -C $INSTALL_DIR remote update ; then
         echo "Could not update software. This is probably because the device does not have a connection."
         return 0
@@ -43,14 +45,18 @@ function pull_any_changes_and_install {
     LOCAL_REV=$(git -C $INSTALL_DIR rev-parse @)
     REMOTE_REV=$(git -C $INSTALL_DIR rev-parse "origin/master")
 
-    if [ $LOCAL_REV = $REMOTE_REV ] ; then
-        echo "Software is already up to date."
-    else
-        # Update to latest software version
+    if [ $LOCAL_REV != $REMOTE_REV ]; then
         git -C $INSTALL_DIR pull origin master
-
         echo "Software updated."
+
         install_deps_and_stuff
+    else
+        echo "Software is already up to date."
+
+        if [ $1 = "-u" ]; then
+            echo "Force update enabled so proceeding with update"
+            install_deps_and_stuff
+        fi
     fi
 }
 
