@@ -11,7 +11,7 @@ log4js.configure({
     everything: { type: 'dateFile', filename: 'usb-bluetooth-bridge.log'}
   },
   categories: {
-    default: { appenders: [ 'everything' ], level: 'debug' }
+    default: { appenders: [ 'everything' ], level: process.env.LOG_LEVEL ?? 'info' }
   }
 });
 
