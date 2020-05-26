@@ -8,6 +8,7 @@ echo "Starting up Kordata usb-bluetooth-bridge"
 
 # If the install dir isn't a git repo, then we need to clone the source 
 if ! git -C $INSTALL_DIR rev-parse ; then
+    echo "Installation isn't a git repo. Cloning new copy."
     mv $INSTALL_DIR /share/bridge.old
     git clone $GIT_REPO
 fi
