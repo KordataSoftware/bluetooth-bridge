@@ -53,7 +53,7 @@ function pull_any_changes_and_install {
     else
         echo "Software is already up to date."
 
-        if [ $1 = "-u" ]; then
+        if [ "$1" = "-u" ]; then
             echo "Force update enabled so proceeding with update"
             install_deps_and_stuff
         fi
