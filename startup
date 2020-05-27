@@ -55,7 +55,7 @@ function pull_any_changes_and_install {
     else
         echo "Software is already up to date."
 
-        if [ -z "$FIRST_ARG" ] && [ "$FIRST_ARG" = "-u" ]; then
+        if [ "$FIRST_ARG" = "-u" ]; then
             echo "Force update enabled so proceeding with update"
             install_deps_and_stuff
         fi
