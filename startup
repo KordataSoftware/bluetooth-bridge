@@ -6,7 +6,7 @@ START_SCRIPT=/home/pi/start_bridge
 
 echo "Starting up Kordata usb-bluetooth-bridge"
 
-FORCE_UPDATE=$([ "$1" = "-u" ])
+FIRST_ARG=$1
 
 function update_self_if_needed {
     # If there's a new version of this script, install it and execute that
@@ -55,7 +55,7 @@ function pull_any_changes_and_install {
     else
         echo "Software is already up to date."
 
-        if $FORCE_UPDATE; then
+        if [ FIRST_ARG = "-u" ]; then
             echo "Force update enabled so proceeding with update"
             install_deps_and_stuff
         fi
