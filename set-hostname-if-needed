@@ -1,5 +1,5 @@
 #!/bin/bash
-CURRENT_HOSTNAME=$(cat /etc/hostname)
+CURRENT_HOSTNAME=$(cat /boot/hostname)
 HOSTNAME_BASE=$(cat /boot/hostname_base)
 
 ##### DONT EDIT PAST HERE #####
@@ -19,6 +19,6 @@ if [ "$CURRENT_HOSTNAME" = "$TARGET_HOSTNAME" ]; then
     exit 1
 else
     echo $TARGET_HOSTNAME > /etc/hostname
-    sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$TARGET_HOSTNAME/g" /etc/hosts
+    sed -i "s/127.0.1.1.*/127.0.1.1\t$TARGET_HOSTNAME/g" /etc/hosts
     echo $TARGET_HOSTNAME > /boot/hostname
 fi
