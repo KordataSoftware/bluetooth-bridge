@@ -1,5 +1,5 @@
 #!/bin/bash
-OLD_HOSTNAME=$(cat /etc/hostname)
+CURRENT_HOSTNAME=$(cat /etc/hostname)
 HOSTNAME_BASE=$(cat /boot/hostname_base)
 
 ##### DONT EDIT PAST HERE #####
@@ -13,8 +13,10 @@ HOSTNAME_BASE=$(cat /boot/hostname_base)
 # OUI portion as part of our identifier
 ID=$(ifconfig eth0 | grep ether | egrep -o '([[:xdigit:]]{2}[:.-]?){5}[[:xdigit:]]{2}' | sed 's/://g' | xxd -r -p | base32 | sed 's/=//g' | cut -c 5-)
 
-NEW_HOSTNAME=$HOSTNAME_BASE$ID
+TARGET_HOSTNAME=$HOSTNAME_BASE$ID
 
-echo $NEW_HOSTNAME > /etc/hostname
-sed -i "s/127.0.1.1.*$OLD_HOSTNAME/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
-echo $NEW_HOSTNAME > /boot/hostname
+if [ "$TARGET_HOSTNAME" = "$CURRENT_HOSTNAME" ]; then
+    exit 1
+else
+    exit 0
+fi
