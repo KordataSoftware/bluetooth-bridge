@@ -1,14 +1,11 @@
 [Unit]
 Description=Bridge Init Service
-ConditionPathExists=/boot/initbridge
 Before=dhcpcd.service
 
 [Service]
 Type=oneshot
-ExecStartPre=/bin/bash -c 'rm /boot/initbridge && cp -R /boot/usb-bluetooth-bridge/. /share/usb-bluetooth-bridge/.'
 ExecStart=/bin/bash set-hostname
 WorkingDirectory=/share/usb-bluetooth-bridge
-ExecStartPost=/sbin/reboot
 User=root
 Group=root
 
