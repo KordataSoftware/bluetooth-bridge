@@ -15,8 +15,10 @@ ID=$(ifconfig eth0 | grep ether | egrep -o '([[:xdigit:]]{2}[:.-]?){5}[[:xdigit:
 
 TARGET_HOSTNAME=$HOSTNAME_BASE$ID
 
-if [ "$TARGET_HOSTNAME" = "$CURRENT_HOSTNAME" ]; then
+if [ "$CURRENT_HOSTNAME" = "$TARGET_HOSTNAME" ]; then
     exit 1
 else
-    exit 0
+    echo $TARGET_HOSTNAME > /etc/hostname
+    sed -i "s/127.0.1.1.*$CURRENT_HOSTNAME/127.0.1.1\t$TARGET_HOSTNAME/g" /etc/hosts
+    echo $TARGET_HOSTNAME > /boot/hostname
 fi

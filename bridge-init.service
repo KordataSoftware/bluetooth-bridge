@@ -4,8 +4,7 @@ Before=dhcpcd.service
 
 [Service]
 Type=oneshot
-ExecCondition=/bin/bash needs-hostname-update
-ExecStart=/bin/bash set-hostname
+ExecStart=/bin/bash set-hostname-if-needed
 ExecStartPost=/sbin/reboot
 WorkingDirectory=/share/usb-bluetooth-bridge
 User=root
